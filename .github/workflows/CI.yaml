@@ -1,0 +1,632 @@
+# Check with
+# yamllint CI.yaml | grep syntax
+
+on:
+  push:
+    branches: [ main, dev  ]
+  pull_request:
+  schedule:
+    - cron: 0 1 * * 1
+
+name: eg/CI build
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+# One job (named eg) runs all examples on a subset of "boards". It goes by example so 
+# they are all attempted, and  does not stop at the first example to fail. This is nice for 
+# identifying problems in the examples, but is slow because of rebuild for each example.
+# (It would be faster if I could get caching to work.)
+# The other job (named CI) runs a matrix of strategies x on all "boards".
+# For each matrix point all examples are run with a single build. This is faster but
+# terminates on the first example failure so examples that are known to fail are omitted.
+
+# Currently only strategy dev-testing is being run. (There is too much change for the other to work.)
+# The 4 strategies are release-testing, driver-testing, hal-testing, and dev-testing.
+# The differnce is set in the Cargo.toml file in the strategy directories.
+# The release-testing uses release versions of both the driver crate and the HAL crate.
+# The driver-testing  uses the git versions of the driver crate and the release version of the HAL crate.
+# The   hal-testing   uses the release versions of the driver crate and the git version of the HAL crate.
+# The   dev-testing   uses git versions of both the driver crate and the HAL crate.
+
+#################################################################################################
+#################################################################################################
+#################################################################################################
+
+  boards:
+    name: CI
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    #fail-fast: false
+    strategy:
+      matrix:        
+        brd: [bluepill,  blackpill-stm32f411, weact-stm32g431, weact-stm32g474 devEBox-stm32h750, ]
+        #brd: [bluepill,       discovery-stm32f303, blackpill-stm32f401, blackpill-stm32f411, none-stm32f769, 
+        #      none-stm32g081, weact-stm32g431, none-stm32g473, weact-stm32g474, 
+        #      devEBox-stm32h750,  
+        #      none-stm32l0x2,      discovery-stm32l100, heltec-lora-node151,  none-stm32l422,
+        #      none-stm32f100, none-stm32f101,      none-stm32f030,      ]
+        #brd: [bluepill,       discovery-stm32f303, blackpill-stm32f401, blackpill-stm32f411, 
+        #      none-stm32f769, devEBox-stm32h750, devEBox-stm32h743, none-stm32h742,      discovery-stm32l100, heltec-lora-node151,  none-stm32l422,
+        #      none-stm32f100, none-stm32f101,      none-stm32f030,       none-stm32l0x2 ]
+        #NB sections in brd above must be one-to-one with brd: below or matrix is messed up
+        
+        #  none-stm32f042,  always fails because it does not have 3 usarts
+        #  stm32fxx_hal does not have adc support enabled for stm32f722. Switched to stm32f769
+
+        # Until things are more stable everything but dev-testing is failing.
+        #stg: [release-testing, driver-testing, hal-testing, dev-testing ]
+        #stg: [release-testing, dev-testing ]
+        stg: [dev-testing ]
+        include:
+           #- brd: "none-stm32f042"  
+           #  mcu:  stm32f042
+           #  hal: "stm32f0xx"
+           #  trg: "thumbv6m-none-eabi"
+           #- brd: "none-stm32f030"
+           #  mcu:  stm32f030xc
+           #  hal: "stm32f0xx"
+           #  trg: "thumbv6m-none-eabi"   
+           #- brd:  "none-stm32f100"
+           #  mcu:  stm32f100
+           #  hal: "stm32f1xx"
+           #  trg: "thumbv7m-none-eabi"
+           #- brd: "none-stm32f101"
+           #  mcu:  stm32f101
+           #  hal: "stm32f1xx"
+           #  trg: "thumbv7m-none-eabi"
+           - brd: "bluepill"
+             mcu:  stm32f103
+             hal: "stm32f1xx"
+             trg: "thumbv7m-none-eabi"
+           #- brd: "discovery-stm32f303"
+           #  mcu:  stm32f303xc
+           #  hal: "stm32f3xx"
+           #  trg: "thumbv7em-none-eabihf"
+           #- brd: "blackpill-stm32f401"
+           #  mcu:  stm32f401
+           #  hal: "stm32f4xx"
+           #  trg: "thumbv7em-none-eabihf"
+           - brd: "blackpill-stm32f411"
+             mcu:  stm32f411
+             hal: "stm32f4xx"
+             trg: "thumbv7em-none-eabihf"
+           #- brd: "none-stm32f769"
+           #  mcu:  stm32f769
+           #  hal: "stm32f7xx"
+           #  trg: "thumbv7em-none-eabihf"
+           #- brd: "none-stm32g081"
+           #  mcu:  stm32g081
+           #  hal: "stm32g0xx"
+           #  trg: "thumbv6m-none-eabi"
+           - brd: "weact-stm32g431"
+             mcu:  stm32g431xB
+             hal: "stm32g4xx"
+             trg: "thumbv7em-none-eabihf"
+           #- brd: "none-stm32g473"
+           #  mcu:  stm32g473
+           #  hal: "stm32g4xx"
+           #  trg: "thumbv7em-none-eabihf"
+           - brd: "weact-stm32g474"
+             mcu:  stm32g474xE
+             hal: "stm32g4xx"
+             trg: "thumbv7em-none-eabihf"
+           - brd: "devEBox-stm32h750"
+             mcu:  stm32h750             
+             hal: "stm32h7xx"
+             trg: "thumbv7em-none-eabihf"
+           #- brd: "none-stm32l0x2"
+           #  mcu:  stm32l0x2kztx
+           #  hal: "stm32l0xx"
+           #  trg: "thumbv6m-none-eabi"
+           #- brd: "discovery-stm32l100"
+           #  mcu:  stm32l100
+           #  hal: "stm32l1xx"
+           #  trg: "thumbv7m-none-eabi"
+           #- brd: "heltec-lora-node151"
+           #  mcu:  stm32l151
+           #  hal: "stm32l1xx"
+           #  trg: "thumbv7m-none-eabi"
+           #- brd: "none-stm32l422"
+           #  mcu:  stm32l422
+           #  hal: "stm32l4xx"
+           #  trg: "thumbv7em-none-eabi"
+
+    steps:
+      - uses: actions/checkout@v3
+      #- uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          #profile: minimal
+          toolchain: nightly
+          target: ${{ matrix.trg }}
+    
+      - name: Configure caching 
+        uses: actions/cache@v3
+        with:
+          key: ${{ matrix.brd }}
+          path: |
+            ${{ env.HOME }}/.cargo
+            target
+
+      - name: tree
+        #--manifest-path to find Caro.toml.      
+        run: cargo  tree   --manifest-path ${{ matrix.stg }}/Cargo.toml 
+
+      - name: old_hal_tree
+        #--manifest-path to find Caro.toml.      
+        run: cargo  tree   --manifest-path ${{ matrix.stg }}/Cargo.toml  -i embedded-hal@0.2.7
+
+      - name: Build
+        run: cargo build   --manifest-path ${{ matrix.stg }}/Cargo.toml --no-default-features --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }}
+
+      ##### misc  #####
+
+      - name: Example display_stuff_rtic_arbit
+        run: cargo build  --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example display_stuff_rtic_arbit
+ 
+      - name: Example display_stuff_rtic_share
+        run: cargo build  --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example display_stuff_rtic_share
+
+
+      #####  I2cBusNotShared examples   #####
+
+      - name: Example aht10_rtic
+        #if: ${{ matrix.trg != 'thumbv6m-none-eabi'  }}
+        run: cargo build  --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example aht10_rtic
+
+      - name: Example htu2xd_rtic
+        #if: ${{ matrix.trg != 'thumbv6m-none-eabi'  }}
+        run: cargo build  --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example htu2xd_rtic
+
+      - name: Example battery_monitor_ads1015_rtic
+        run: cargo  build --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example battery_monitor_ads1015_rtic
+         # use-cross: true
+
+      - name: Example gps_rw_rtic
+        #if: ${{ matrix.trg != 'thumbv6m-none-eabi'  }}
+        run: cargo build  --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example gps_rw_rtic
+
+      - name: Example schedule
+        #if: ${{ matrix.trg != 'thumbv6m-none-eabi'  }}
+        run: cargo build  --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example schedule
+
+#      This fails on stm32f3xx until USART_EXTI interrupt naming is resolved. Or alternatly it can be
+#      made to work on stm32f3xx  and fail on all others.
+#      See https://github.com/stm32-rs/stm32f3xx-hal/issues/290
+      - name: Example resource-user-struct
+        run: cargo build  --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example resource-user-struct
+
+      - name: Example blink_rtic
+        run: cargo build  --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example blink_rtic
+
+      - name: Example dht_rtic
+        run: cargo build  --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example dht_rtic
+
+      - name: Example ina219_rtic
+        run: cargo  build --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example ina219_rtic
+
+      - name: Example display_stuff_rtic0
+        run: cargo  build --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example display_stuff_rtic0
+
+      - name: Example display_stuff_rtic
+        run: cargo  build --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example display_stuff_rtic
+
+      - name: Example ads_ina_ssd_rtic
+        run: cargo  build --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example ads_ina_ssd_rtic
+
+      - name: Example aht10-aht30_rtic
+        run: cargo  build --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example aht10-aht30_rtic
+
+      - name: Example iaq-core-c-gas-voc-usart-logger
+        run: cargo  build --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example iaq-core-c-gas-voc-usart-logger
+
+      - name: Example ccs811-gas-voc-usart-logger
+        run: cargo  build --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example ccs811-gas-voc-usart-logger
+
+      - name: Example display_stuff_rtic_rcd
+        run: cargo  build --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example display_stuff_rtic_rcd
+
+      - name: Example serial-dma
+        run: cargo  build --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example serial-dma
+
+
+      #####  I2cSharedBus examples   #####
+
+      - name: Example ccs811-co2-voc
+        run: cargo build  --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example ccs811-co2-voc
+
+      - name: Example battery_monitor_ads1015_rtic_dma
+        run: cargo build  --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example battery_monitor_ads1015_rtic_dma
+
+
+      #####  displayX2 examples   #####
+
+      - name: Example displayX2_rtic
+        run: cargo  build --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example displayX2_rtic
+
+      - name: Example displayX2_rtic1
+        run: cargo  build --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example displayX2_rtic1
+
+      - name: Example displayX2_rtic4a1
+        run: cargo  build --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example displayX2_rtic4a1
+
+      - name: Example displayX2_rtic5
+        run: cargo  build --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example displayX2_rtic5
+
+      - name: Example displayX2_rtic2
+        run: cargo  build --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example displayX2_rtic2
+
+      - name: Example displayX2_rtic4a2
+        run: cargo  build --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example displayX2_rtic4a2
+
+      - name: Example displayX2_rtic3
+        run: cargo  build --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example displayX2_rtic3
+
+      - name: Example displayX2_rtic4b
+        run: cargo  build --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example displayX2_rtic4b
+
+
+#      #####  project examples   #####
+#
+#      - name: Example iaq_ens160aht21_display
+#        run: cargo  build --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example iaq_ens160aht21_display
+#
+#      - name: Example temperature-display_4jst
+#        run: cargo  build --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example temperature-display_4jst
+#
+#      - name: Example temperature-display_no-rtic
+#        run: cargo  build --manifest-path  ${{ matrix.stg }}/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example temperature-display_no-rtic
+
+#################################################################################################
+
+#################################################################################################
+
+#################################################################################################
+#################################################################################################
+#################################################################################################
+#################################################################################################
+
+  MiscExamples:
+    name: ExM
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+
+        eg:  [display_stuff_rtic_arbit,  display_stuff_rtic_share, ]
+
+             # temp-humidity-display is tested in CI blocks for MCUs but not in this eg matrix 
+             # because the feature indicating the sensor needs to be set.
+             #   mlx9064x,  aht20-display-nodelay,   #ad9833-midi-player,      
+
+        brd: [bluepill, blackpill-stm32f401, weact-stm32g474, devEBox-stm32h750]  
+        #brd: [discovery-stm32f303]  #   matrix expansion cannot exced 256
+
+        #NB sections in brd above must be one-to-one with brd: below or matrix is messed up
+        include:
+           - brd: "bluepill"
+             mcu:  stm32f103
+             hal: "stm32f1xx"
+             trg: "thumbv7m-none-eabi"
+           - brd: "blackpill-stm32f401"
+             mcu:  stm32f401
+             hal: "stm32f4xx"
+             trg: "thumbv7em-none-eabihf"
+        #   - brd: "discovery-stm32f303"
+        #     mcu:  stm32f303xc
+        #     hal: "stm32f3xx"
+        #     trg: "thumbv7em-none-eabihf"
+           - brd: "weact-stm32g474"
+             mcu:  stm32g474xE
+             hal: "stm32g4xx"
+             trg: "thumbv7em-none-eabihf"
+           - brd: "devEBox-stm32h750"
+             mcu:  stm32h750             
+             hal: "stm32h7xx"
+             trg: "thumbv7em-none-eabihf"
+
+    steps:
+      - uses: actions/checkout@v3
+      #previously  uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          #profile: minimal
+          toolchain: nightly
+          target: ${{ matrix.trg }}
+    
+      - name: Configure caching 
+        uses: actions/cache@v3
+        with:
+          key: ${{ matrix.brd }}
+          path: |
+            ${{ env.HOME }}/.cargo
+            target
+
+      - name: tree
+        #--manifest-path to find Caro.toml.      
+        run: cargo tree  --manifest-path dev-testing/Cargo.toml 
+
+      - name: Build
+        run: cargo build   --manifest-path dev-testing/Cargo.toml --no-default-features --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }}
+
+      - name: Build example 
+        run: cargo build  --manifest-path  dev-testing/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example ${{ matrix.eg }}
+
+#################################################################################################
+#################################################################################################
+
+  I2cBusNotSharedExamples:
+    name: ExD
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+
+        eg:  [ adc_dma, display_stuff_rtic, ads_ina_ssd_rtic, gps_rw_rtic,
+              aht10-aht30_rtic, htu2xd_rtic, aht10_rtic, ina219_rtic, battery_monitor_ads1015_rtic,  
+              resource-user-struct, blink_rtic, dht_rtic, schedule, display_stuff_rtic0, serial-dma,
+              display_stuff_rtic_rcd,
+             ]
+        
+        brd: [bluepill, blackpill-stm32f401, weact-stm32g474, devEBox-stm32h750]  
+        #brd: [discovery-stm32f303]  #   matrix expansion cannot exced 256
+
+        #NB sections in brd above must be one-to-one with brd: below or matrix is messed up
+        include:
+           - brd: "bluepill"
+             mcu:  stm32f103
+             hal: "stm32f1xx"
+             trg: "thumbv7m-none-eabi"
+           - brd: "blackpill-stm32f401"
+             mcu:  stm32f401
+             hal: "stm32f4xx"
+             trg: "thumbv7em-none-eabihf"
+        #   - brd: "discovery-stm32f303"
+        #     mcu:  stm32f303xc
+        #     hal: "stm32f3xx"
+        #     trg: "thumbv7em-none-eabihf"
+           - brd: "weact-stm32g474"
+             mcu:  stm32g474xE
+             hal: "stm32g4xx"
+             trg: "thumbv7em-none-eabihf"
+           - brd: "devEBox-stm32h750"
+             mcu:  stm32h750             
+             hal: "stm32h7xx"
+             trg: "thumbv7em-none-eabihf"
+
+    steps:
+      - uses: actions/checkout@v3
+      #previously  uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          #profile: minimal
+          toolchain: nightly
+          target: ${{ matrix.trg }}
+    
+      - name: Configure caching 
+        uses: actions/cache@v3
+        with:
+          key: ${{ matrix.brd }}
+          path: |
+            ${{ env.HOME }}/.cargo
+            target
+
+      - name: tree
+        #--manifest-path to find Caro.toml.      
+        run: cargo tree  --manifest-path dev-testing/Cargo.toml 
+
+      - name: Build
+        run: cargo build   --manifest-path dev-testing/Cargo.toml --no-default-features --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }}
+
+      - name: Build example 
+        run: cargo build  --manifest-path  dev-testing/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example ${{ matrix.eg }}
+
+#################################################################################################
+#################################################################################################
+
+
+  I2cSharedBusExamples:
+    name: ExI
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+
+        eg:  [battery_monitor_ads1015_rtic_dma,  ccs811-co2-voc,
+             ]
+             
+             # temp-humidity-display is tested in CI blocks for MCUs but not in this eg matrix 
+             # because the feature indicating the sensor needs to be set.
+             #   mlx9064x,  aht20-display-nodelay,   #ad9833-midi-player,      
+
+        brd: [bluepill, blackpill-stm32f401, weact-stm32g474, devEBox-stm32h750]  
+        #brd: [discovery-stm32f303]  #   matrix expansion cannot exced 256
+
+        #NB sections in brd above must be one-to-one with brd: below or matrix is messed up
+        include:
+           - brd: "bluepill"
+             mcu:  stm32f103
+             hal: "stm32f1xx"
+             trg: "thumbv7m-none-eabi"
+           - brd: "blackpill-stm32f401"
+             mcu:  stm32f401
+             hal: "stm32f4xx"
+             trg: "thumbv7em-none-eabihf"
+        #   - brd: "discovery-stm32f303"
+        #     mcu:  stm32f303xc
+        #     hal: "stm32f3xx"
+        #     trg: "thumbv7em-none-eabihf"
+           - brd: "weact-stm32g474"
+             mcu:  stm32g474xE
+             hal: "stm32g4xx"
+             trg: "thumbv7em-none-eabihf"
+           - brd: "devEBox-stm32h750"
+             mcu:  stm32h750             
+             hal: "stm32h7xx"
+             trg: "thumbv7em-none-eabihf"
+
+    steps:
+      - uses: actions/checkout@v3
+      #previously  uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          #profile: minimal
+          toolchain: nightly
+          target: ${{ matrix.trg }}
+    
+      - name: Configure caching 
+        uses: actions/cache@v3
+        with:
+          key: ${{ matrix.brd }}
+          path: |
+            ${{ env.HOME }}/.cargo
+            target
+
+      - name: tree
+        #--manifest-path to find Caro.toml.      
+        run: cargo tree  --manifest-path dev-testing/Cargo.toml 
+
+      - name: Build
+        run: cargo build   --manifest-path dev-testing/Cargo.toml --no-default-features --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }}
+
+      - name: Build example 
+        run: cargo build  --manifest-path  dev-testing/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example ${{ matrix.eg }}
+
+#################################################################################################
+#################################################################################################
+
+
+  displayX2Examples:
+    name: ExR
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+
+        eg:  [displayX2_rtic1,  displayX2_rtic4a1,  displayX2_rtic5,
+              displayX2_rtic2,  displayX2_rtic4a2,  displayX2_rtic,
+              displayX2_rtic3,  displayX2_rtic4b,  
+             ]
+
+        brd: [bluepill, blackpill-stm32f401, weact-stm32g474, devEBox-stm32h750]  
+        #brd: [discovery-stm32f303]  #   matrix expansion cannot exced 256
+
+        #NB sections in brd above must be one-to-one with brd: below or matrix is messed up
+        include:
+           - brd: "bluepill"
+             mcu:  stm32f103
+             hal: "stm32f1xx"
+             trg: "thumbv7m-none-eabi"
+           - brd: "blackpill-stm32f401"
+             mcu:  stm32f401
+             hal: "stm32f4xx"
+             trg: "thumbv7em-none-eabihf"
+          - brd: "weact-stm32g474"
+             mcu:  stm32g474xE
+             hal: "stm32g4xx"
+             trg: "thumbv7em-none-eabihf"
+           - brd: "devEBox-stm32h750"
+             mcu:  stm32h750             
+             hal: "stm32h7xx"
+             trg: "thumbv7em-none-eabihf"
+
+    steps:
+      - uses: actions/checkout@v3
+      #previously  uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          #profile: minimal
+          toolchain: nightly
+          target: ${{ matrix.trg }}
+    
+      - name: Configure caching 
+        uses: actions/cache@v3
+        with:
+          key: ${{ matrix.brd }}
+          path: |
+            ${{ env.HOME }}/.cargo
+            target
+
+      - name: tree
+        #--manifest-path to find Caro.toml.      
+        run: cargo tree  --manifest-path dev-testing/Cargo.toml 
+
+      - name: Build
+        run: cargo build   --manifest-path dev-testing/Cargo.toml --no-default-features --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }}
+
+      - name: Build example 
+        run: cargo build  --manifest-path  dev-testing/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example ${{ matrix.eg }}
+
+#################################################################################################
+#################################################################################################
+
+
+
+  ProjExamples:
+    name: ExP
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+
+        eg:  [iaq_ens160aht21_display, temperature-display_4jst, temperature-display_no-rtic,
+             ]
+
+        brd: [bluepill, blackpill-stm32f401, weact-stm32g474, devEBox-stm32h750]  
+        #brd: [discovery-stm32f303]  #   matrix expansion cannot exced 256
+
+        #NB sections in brd above must be one-to-one with brd: below or matrix is messed up
+        include:
+           - brd: "bluepill"
+             mcu:  stm32f103
+             hal: "stm32f1xx"
+             trg: "thumbv7m-none-eabi"
+           - brd: "blackpill-stm32f401"
+             mcu:  stm32f401
+             hal: "stm32f4xx"
+             trg: "thumbv7em-none-eabihf"
+        #   - brd: "discovery-stm32f303"
+        #     mcu:  stm32f303xc
+        #     hal: "stm32f3xx"
+        #     trg: "thumbv7em-none-eabihf"
+           - brd: "weact-stm32g474"
+             mcu:  stm32g474xE
+             hal: "stm32g4xx"
+             trg: "thumbv7em-none-eabihf"
+           - brd: "devEBox-stm32h750"
+             mcu:  stm32h750             
+             hal: "stm32h7xx"
+             trg: "thumbv7em-none-eabihf"
+
+    steps:
+      - uses: actions/checkout@v3
+      #previously  uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          #profile: minimal
+          toolchain: nightly
+          target: ${{ matrix.trg }}
+    
+      - name: Configure caching 
+        uses: actions/cache@v3
+        with:
+          key: ${{ matrix.brd }}
+          path: |
+            ${{ env.HOME }}/.cargo
+            target
+
+      - name: tree
+        #--manifest-path to find Caro.toml.      
+        run: cargo tree  --manifest-path dev-testing/Cargo.toml 
+
+      - name: Build
+        run: cargo build   --manifest-path dev-testing/Cargo.toml --no-default-features --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }}
+
+      - name: Build example 
+        run: cargo build  --manifest-path  dev-testing/Cargo.toml  --release --target ${{ matrix.trg }} --features ${{ matrix.hal }},${{ matrix.mcu }} --example ${{ matrix.eg }}
+
+#################################################################################################
+#################################################################################################
+
