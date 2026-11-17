@@ -1,0 +1,81 @@
+
+#############################################
+Categories
+-I2c (hardware) bus not shared
+  > displayX2_rtic1.rs (Shared { i2c1_cell,  },   Local {i2c2_cell}) Not building
+  > displayX2_rtic2.rs  Local { display_a, display_b}. Does not build but did?
+  > displayX2_rtic3.rs  Local { display_a, display_b}. Does not build. expected named lifetime
+* > displayX2_rtic4b.rs Local { display_a, display_b} BUILDS with displays initialize in init
+  > displayX2_rtic5.rs  Local { display_a, display_b}. Does not build. Trying  ATOMICCELL
+
+  > try Shared { display_a} (not X2) one thread looping/not,  two threads
+
+
+- At least one I2c  shared (hardware) bus
+* > displayX2_rtic4a1.rs  Local { i2c1}. BUILDS. This has one thread building display_a and display_b then infinite loops.
+  > displayX2_rtic4a2.rs  Shared {i2c1 }. Does not build. i2c1_that_needs_to_be_locked<'_>`
+
+- Want at least one I2c (hardware) bus shared with Local or Shared { display_a, display_b} and
+    > one non-looping thread accessing both display_a and display_b
+    > two non-looping threads, one accessing display_a and the other display_b
+
+- Want at least one I2c (hardware) bus shared with Local or Shared { display_a, sensor}
+    > without multiplex
+    > with multiplex
+
+- Understand how a looping thread can take/drop/retake  I2c (try example rebuilding display)
+- Don't understand how a looping thread can take/drop/retake display
+
+#############################################
+These is stm32f4xx_hal ONLY. Test without setup functions since init variables
+are supposed to have static lifetime and they don't
+Possibility setup is causing problem?
+
+//  See displayX2_rticXXX.txt for documentation.
+
+diff examples/displayX2_rtic1.rs examples/displayX2_rtic2.rs
+diff examples/displayX2_rtic1.rs examples/displayX2_rtic3.rs
+
+
+
+export HAL=stm32f4xx MCU=stm32f411   TARGET=thumbv7em-none-eabihf PROC=stm32f4x  CHIP=STM32F4x  # blackpill-stm32f411 Cortex-M4
+cargo build --no-default-features --target $TARGET --features $MCU,$HAL --example displayX2_rticXXX
+
+with XXX replaced.
+//! displayX2_rtic* programs attempt to use two ssd1306 displays on shared i2c buses.
+//! Version displayX2_rtic0   constructs display_a and display_b on i2c buses with
+//! AtomicCell and AtomicDevice in init, but does not share them and only displays in init.
+//! This is pretty useless, but demonstrates AtomicCell and AtomicDevice display init syntax.
+
+//  4b put displays on separate I2c buses, so does not needs I2c bus sharing.
+//  4a1 put displays on the same RefCell(I2c)  bus  with access from a single thead.
+//  4a2 put displays on the same I2c buses with access from two theads.
+
+//! Version displayX2_rtic1 constructs the shared i2c buses in rtic Local {}
+//! Spawns tasks to construct display_a and display_b.
+//! This does not share the i2c bus, share the resources, or share displays,
+//! but it does put i2c resources in Local, so they have a 'static lifetime.
+
+//! Version displayX2_rtic2 attempts to constructs display_a and display_b
+//! and put them in Local {}. It does *not* build.
+//! This does not share the i2c bus, share the resources, or share displays.
+
+//! Version displayX2_rtic3 attempts to constructs display_a and display_b
+//! and put them in Local {} using MaybeUninit.
+//! This does not share the i2c bus, share the resources, or share displays.
+
+//! See 
+//!  https://github.com/rtic-rs/rtic/blob/master/examples/rp2040_local_i2c_init/src/main.rs
+//!  https://docs.rs/embedded-hal-bus/latest/embedded_hal_bus/i2c/index.html
+//!  https://docs.rs/embedded-hal-bus/latest/embedded_hal_bus/i2c/struct.RefCellDevice.html
+
+// https://docs.rs/embedded-hal-bus/latest/embedded_hal_bus/i2c/struct.RefCellDevice.html
+// RefCellDevice instances are not Send, so it only allows sharing within a single thread (interrupt priority level).
+// If you need to share a bus across several threads, use CriticalSectionDevice instead.
+
+//    - various lifetime 'a problems and complication because
+//         init signature`#[init]` function must have signature `fn(init::Context) -> (Shared resources struct, Local resources struct)`
+//    - putting dispay in Share  adds extra `&mut and fails at 
+//              let display_b:DisplayBType = cx.local.display_b;
+//    - putting interface in Share  adds extra `&mut and fails at 
+//            let interfaceB:Interface2Type = cx.local.interfaceB   

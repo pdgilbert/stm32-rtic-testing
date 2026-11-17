@@ -1,0 +1,429 @@
+[package]
+authors = ["Paul Gilbert"]
+categories = ["embedded", "rtic", "no-std"]
+description = "stm32 rtic testing of examples"
+keywords = ["driver", "embedded", "rtic", "i2c", "spi", "example"]
+license = "MIT OR Apache-2.0"
+name = "stm32-rtic-testing-of-examples"
+version = "0.0.1"
+edition = "2021"
+
+
+[profile.dev] 
+debug = true 
+lto = true 
+opt-level = 1
+
+[profile.release] 
+debug = true 
+lto = true 
+opt-level = "s" 
+
+#[profile.zero]   # opt-level = 0 can cause trouble from things that should be optimized out
+#debug = true 
+#lto = true 
+#opt-level = 0
+#
+#[profile.squish] # make things as small as possible
+#debug = false 
+#lto = false 
+#opt-level = "s" 
+
+
+[dependencies]
+
+#  hal versions using git
+                                          
+#in stm32f0xx-haljust making embedded-hal = 1.0, instead of embedded-hal-1 = 1.0 does not work.
+stm32f0xx-hal = { git = "https://github.com/stm32-rs/stm32f0xx-hal", optional = true }
+#stm32f1xx-hal = { version = "0.10.0", optional = true }
+stm32f1xx-hal = { git = "https://github.com/stm32-rs/stm32f1xx-hal", optional = true }
+stm32f3xx-hal = { git = "https://github.com/stm32-rs/stm32f3xx-hal", optional = true }
+#stm32f4xx-hal = { version = "0.22.1", optional = true } 
+stm32f4xx-hal = { git = "https://github.com/stm32-rs/stm32f4xx-hal", optional = true }
+stm32f7xx-hal = { git = "https://github.com/stm32-rs/stm32f7xx-hal", optional = true }
+stm32g0xx-hal = { git = "https://github.com/stm32-rs/stm32g0xx-hal", optional = true }
+
+stm32g4xx-hal = { git = "https://github.com/stm32-rs/stm32g4xx-hal", optional = true }
+#stm32g4xx-hal = { git = "https://github.com/techmccat/stm32g4xx-hal", optional = true, branch = "hal-1" }
+#stm32g4xx-hal = {  git = "https://github.com/pdgilbert/stm32g4xx-hal",optional = true, branch = "hal-1" }
+#stm32g4xx-hal = {  git = "https://github.com/pdgilbert/stm32g4xx-hal",optional = true, branch = "hal-1-up" }
+#stm32g4xx-hal = {  git = "https://github.com/usbalbin/stm32g4xx-hal",optional = true, branch = "e-hal-1" }
+
+#stm32h7xx-hal = { git = "https://github.com/stm32-rs/stm32h7xx-hal", optional = true , branch = "eh-v1.0"}
+stm32h7xx-hal = { git = "https://github.com/everdrone/stm32h7xx-hal", optional = true , branch = "eh-v1.0"}
+#stm32h7xx-hal = { git = "https://github.com/stm32-rs/stm32h7xx-hal", optional = true }
+#stm32l0xx-hal = { git = "https://github.com/stm32-rs/stm32l0xx-hal", optional = true }
+#stm32l0xx-hal = { git = "https://github.com/zheylmun/stm32l0xx-hal", optional = true, branch = "feature/embedded_hal_1_0" }
+stm32l0xx-hal = { git = "https://github.com/zheylmun/stm32l0xx-hal", optional = true, branch = "feature/rcc_cleanup" }
+#stm32l1xx-hal = { git = "https://github.com/stm32-rs/stm32l1xx-hal", optional = true, default-features = false}
+stm32l1xx-hal = { git = "https://github.com/TheCallSign/stm32l1xx-hal", optional = true, default-features = false}
+#stm32l4xx-hal = { git = "https://github.com/stm32-rs/stm32l4xx-hal", optional = true }
+stm32l4xx-hal = { git = "https://github.com/sousandrei/stm32l4xx-hal", optional = true, branch = "feat/migrate-to-ehal-1.0" }
+
+#  driver versions using git
+dht-sensor      = { git = "https://github.com/michaelbeaumont/dht-sensor", branch = "main"}
+#dht-sensor      = { git = "https://github.com/MGlolenstine/dht-sensor", branch = "main"}  // NOT no-std ?
+#dht-sensor      = { git = "https://github.com/lpython/dht-sensor", branch = "main", features = ["async"]} // compiling errors
+
+#ssd1306         = { git = "https://github.com/sjoerdsimons/ssd1306", branch = "master"  } # embedded-hal-1.0.0
+# next would be prefered but need to sort out a version conflict
+ssd1306         = { git = "https://github.com/rust-embedded-community/ssd1306", branch = "master"  }
+
+# examples/driver-examples/
+#mcp4x           = { git = "https://github.com/eldruin/mcp4x-rs" }# mcp4x = "0.1"
+##ad983x          = { git = "https://github.com/eldruin/ad983x-rs" }  # CONFLICT needs embedded-hal = "=1.0.0-alpha.8 but stm32f4xx-hal wants 11
+ads1x1x         = { git = "https://github.com/eldruin/ads1x1x-rs" }
+#bmi160          = { git = "https://github.com/eldruin/bmi160-rs" }
+#ds1307          = { git = "https://github.com/eldruin/ds1307-rs" }
+#eeprom24x       = { git = "https://github.com/eldruin/eeprom24x-rs" }
+embedded-ccs811 = { git = "https://github.com/eldruin/embedded-ccs811-rs" }
+#hdc20xx         = { git = "https://github.com/eldruin/hdc20xx-rs" }
+#iaq-core        = { git = "https://github.com/eldruin/iaq-core-rs" }
+#isl29125        = { git = "https://github.com/eldruin/isl29125-rs" }
+#max170xx        = { git = "https://github.com/eldruin/max170xx-rs" }
+#max3010x        = { git = "https://github.com/eldruin/max3010x-rs" }
+#mcp794xx        = { git = "https://github.com/eldruin/mcp794xx-rs" }
+#mlx9061x        = { git = "https://github.com/eldruin/mlx9061x-rs" }
+#mma8x5x         = { git = "https://github.com/eldruin/mma8x5x-rs" }
+#opt300x         = { git = "https://github.com/eldruin/opt300x-rs" }
+#pwm-pca9685     = { git = "https://github.com/eldruin/pwm-pca9685-rs" }
+#si4703          = { git = "https://github.com/eldruin/si4703-rs" }
+#tcs3472         = { git = "https://github.com/eldruin/tcs3472-rs" }
+#tmp006          = { git = "https://github.com/eldruin/tmp006-rs" }
+#tmp1x2          = { git = "https://github.com/eldruin/tmp1x2-rs" }
+#veml6030        = { git = "https://github.com/eldruin/veml6030-rs" }
+#veml6070        = { git = "https://github.com/eldruin/veml6070-rs" }
+#veml6075        = { git = "https://github.com/eldruin/veml6075-rs" }
+#xca9548a         = ">=1.0.0"
+##xca9548a         = { git = "https://github.com/eldruin/xca9548a-rs" }
+
+
+# examples/misc-i2c-drivers/
+# See  examples/misc-i2c-drivers/i2c-sensor-notes.txt regarding various sensor crate notes.
+
+#aht10           = { git = "https://github.com/andy31415/aht10", branch = "fix_status_check" }
+#
+#aht20-bl          = { package = "aht20", git = "https://github.com/blueluna/aht20" } #eh-1 now but errors are not returned, and consumes delay.
+#
+#embedded-aht20   = "0.3.0"     #eh-1 and both sync and async
+#
+#aht20-async       = "1.0.0"
+##aht20-async      = { git = "https://github.com/fmckeogh/aht20-async" } 
+#
+#aht20-driver     = { version = "2.0.0", default-features = false } #eh-1 
+##aht20-driver    = { git = "https://github.com/anglerud/aht20-driver", default-features = false }
+#
+#aht30   = { git = "https://github.com/hal-drv/aht30", features = ["async"], default-features = false } #eh-1 and both sync and async
+#
+##hdc1080         = { git = "https://github.com/iohe/hdc1080-rs", default-features = false }  needs std
+#embedded-hdc1080-rs = { git = "https://github.com/maxmarvil/hdc1080-embedded-rs" } # eh 0.2.6
+#
+#embedded-sht3x   =  "0.2.0"     #eh-1 and both sync and async
+#
+#shtcx         =  { git = "https://github.com/dbrgn/shtcx-rs" } #  eh 1.0
+#
+
+# None of these are  eh 1.0
+##htu2xd           = { git = "https://github.com/samcrow/HTU2XD" }  # 0.2.4
+#htu21df-sensor     = "0.1.4"
+##htu21df-sensor     = { git = "https://gitlab.com/phgsng/htu21df-sensor" }  # eh 0.2
+
+
+#vl53l0x          = { git = "https://github.com/copterust/vl53l0x" }
+##mlx9064x         = { git = "https://github.com/paxswill/mlx9064x-rs", branch = "main", features = ["libm"], default-features = false } 
+#ina219           = {  version = "0.1.0" }
+ina219           = { git = "https://github.com/scttnlsn/ina219" }
+##ina219           = { git = "https://github.com/sndnvaps/ina219_rs" }
+#ina219           = { git = "https://github.com/tdittr/ina219" }
+##ina219           = { git = "https://github.com/youduda/ina219" }
+#ens160           = { git = "https://github.com/teamplayer3/ens160", default-features = false }
+##ens160         = { git = "https://github.com/pdgilbert/ens160", features = ["no-std"], default-features = false }
+#
+
+## NB syntax for rtic-monotonics workspace in  rtic-rs/rtic repository
+#rtic = { version = "2.0.1", features=["thumbv7-backend", "rtic-monotonics"], optional = true  }
+rtic = { git = "https://github.com/rtic-rs/rtic", optional = true  }
+
+#rtic-monotonics = { version = "1.5.0", features = [ "cortex-m-systick"], optional = true }
+rtic-monotonics = { git = "https://github.com/rtic-rs/rtic", features = [ "cortex-m-systick"], optional = true }
+
+# Following https://github.com/rtic-rs/rtic/tree/master/examples/stm32g030f6_periodic_prints
+# next with "critical-section" is needed for cortex-M0, but it is not needed for  cortex-M4 and M7.
+portable-atomic = { version = "1", features = ["critical-section"], optional = true }
+
+rtic-sync =  { version = "1.6.1", optional = true }
+#rtic-sync = { git = "https://github.com/rtic-rs/rtic",  optional = true }
+
+#dwt-systick-monotonic = {version = "1.0" , optional = true }  # needed for adc_dma_rtic fiddling but if not optional it stops build with stm32f0xx
+dwt-systick-monotonic = {git = "https://github.com/rtic-rs/dwt-systick-monotonic" , optional = true }
+
+# for duration timer in rtic
+#fugit = { git = "https://github.com/korken89/fugit", optional = true }
+fugit = { version = "0.6.0", optional = true }
+
+
+#  check:  diff dev-testing/Cargo.toml release-testing/Cargo.toml
+#
+#  below here dev-testing/Cargo.toml should be the same as release-testing/Cargo.toml
+#
+# updates to crates below are not actively tested by CI. Dependabot update are
+# incorporated when the update does not break things.
+
+# NB. do not mix release and git versions.
+#     embedded-hal-bus from git pulls in embedded-hal from git and traits get confused.
+#     Compiler gives error
+#        note: perhaps two different versions of crate `embedded_hal` are being used?
+embedded-hal        = "1.0"
+embedded-hal-bus    = "0.3.0"
+embedded-hal-async  = "1.0.0"
+embedded-io         = "0.7.1"  #"0.6.1" "0.7.1"
+
+#embedded-hal       = { git = "https://github.com/rust-embedded/embedded-hal/" }
+#embedded-hal-bus   = { git = "https://github.com/rust-embedded/embedded-hal/" }
+#embedded-hal-async = { git = "https://github.com/rust-embedded/embedded-hal/" }
+#embedded-io        = { git = "https://github.com/rust-embedded/embedded-hal/" }
+
+#embedded-hal-nb    = { git = "https://github.com/rust-embedded/embedded-hal/" }
+
+embedded-graphics = ">=0.7"
+
+heapless = "0.9"
+
+# these are eh v0.2.7
+#nb = ">=0.1.2"
+nb = ">=1.1.0"
+#cortex-m = { version = "0.7.7", features = ["critical-section-single-core"] }  # for cortex M0 processors ??
+cortex-m = { version = "0.7.10", features = ["critical-section-single-core"] }  # for cortex M0 processors ??
+
+libm = "0.2"
+cortex-m-rt = ">=0.7.0"
+
+# for driver-examples based on https://github.com/eldruin/driver-examples
+
+panic-rtt-target = { version =  "0.2.0"}
+rtt-target = { version =  ">=0.6.1" }
+
+#  0.5.0 to 0.6.0 has api change, has no .unwrap()
+cortex-m-semihosting  = { package = "cortex-m-semihosting", version = ">=0.6.0" } 
+# https://github.com/rust-embedded/cortex-m/tree/main/cortex-m-semihosting
+
+# these are eh v0.2.7
+#panic-semihosting    = { version = ">=0.5.2" }
+panic-semihosting    = { version = ">=0.7.0" }
+#panic-reset          = { version = ">=0.1.0" }
+
+panic-halt           = { version = ">=0.2.0" }
+
+
+[features]
+# On cortexM0 devices (stm32f0xx, stm32g0xx and stm32l0xx) rtic needs "thumbv6-backend" and "portable-atomic"
+#stm32f0xx = ["stm32f0xx-hal/rt" , "shared-bus-rtic"]
+stm32f0xx = ["stm32f0xx-hal/rt", "rtic/thumbv6-backend", "rtic-monotonics", "portable-atomic"]
+stm32f1xx = ["stm32f1xx-hal",    "rtic/thumbv7-backend", "rtic-monotonics" ]
+stm32f3xx = ["stm32f3xx-hal/rt", "rtic/thumbv7-backend", "rtic-monotonics" ]
+#stm32f4xx = ["stm32f4xx-hal/rt","rtic/thumbv7-backend", "dwt-systick-monotonic"]
+stm32f4xx = ["stm32f4xx-hal",    "rtic/thumbv7-backend", "rtic-monotonics", "rtic-sync" ] 
+stm32f7xx = ["stm32f7xx-hal/rt", "rtic/thumbv7-backend", "rtic-monotonics" ]
+stm32g0xx = ["stm32g0xx-hal/rt", "rtic/thumbv6-backend", "rtic-monotonics", "portable-atomic"]
+stm32g4xx = ["stm32g4xx-hal/rt", "rtic/thumbv7-backend", "rtic-monotonics", "rtic-sync" ]
+stm32h7xx = ["stm32h7xx-hal/rt", "rtic/thumbv7-backend", "rtic-monotonics", "rtic-sync" ]
+stm32l0xx = ["stm32l0xx-hal/rt", "rtic/thumbv6-backend", "rtic-monotonics", "portable-atomic" ]
+stm32l1xx = ["stm32l1xx-hal/rt", "rtic/thumbv7-backend", "rtic-monotonics" ]
+stm32l4xx = ["stm32l4xx-hal/rt", "rtic/thumbv7-backend", "rtic-monotonics" ]
+
+stm32f030xc   = ["stm32f0xx-hal/stm32f030xc"]
+stm32f042     = ["stm32f0xx-hal/stm32f042"  ]
+stm32f100     = ["stm32f1xx-hal/stm32f100"  ]
+stm32f101     = ["stm32f1xx-hal/stm32f101"  ]
+stm32f103     = ["stm32f1xx-hal/stm32f103",    "stm32f1xx-hal/medium"]
+stm32f303xc   = ["stm32f3xx-hal/stm32f303xc"] 
+stm32f401     = ["stm32f4xx-hal/stm32f401"  ] 
+stm32f405     = ["stm32f4xx-hal/stm32f405"  ] 
+stm32f411     = ["stm32f4xx-hal/stm32f411"  ] 
+stm32f722     = ["stm32f7xx-hal/stm32f722"  ] # no adc in hall yet
+stm32f769     = ["stm32f7xx-hal/stm32f769"  ] # this has adc support but no access to internal channel for mcu temperature
+stm32g071     = ["stm32g0xx-hal/stm32g071"  ]
+stm32g081     = ["stm32g0xx-hal/stm32g081"  ]
+stm32g431xB   = ["stm32g4xx-hal/stm32g431"  ]
+stm32g473     = ["stm32g4xx-hal/stm32g473"  ]
+stm32g474xE   = ["stm32g4xx-hal/stm32g474"  ]
+stm32h742     = ["stm32h7xx-hal/stm32h742"  ]
+stm32h743     = ["stm32h7xx-hal/stm32h743"  ]
+stm32h750     = ["stm32h7xx-hal/stm32h750"  ]
+# see https://www.st.com/resource/en/datasheet/stm32l072v8.pdf  p12 for some MCU variants
+#stm32l0x2     =    ["stm32l0xx-hal/stm32l0x2",  "stm32l0xx-hal/mcu-STM32L072KZTx"]
+stm32l0x2kztx     = ["stm32l0xx-hal/stm32l0x2",     "stm32l0xx-hal/mcu-STM32L072KZTx"]
+#stm32l072kztx = ["stm32l0xx-hal/stm32l0x2",     "stm32l0xx-hal/mcu-STM32L072KZTx"]
+#stm32l072kztx = ["stm32l0xx-hal/stm32l0x2",     "stm32l0xx-hal/mcu-STM32L053R8Tx"]
+#stm32l0x1     = ["stm32l0xx-hal/stm32l0x1",     "stm32l0xx-hal/mcu-STM32L071KBTx"]
+stm32l100     = ["stm32l1xx-hal/stm32l100"  ]
+stm32l151     = ["stm32l1xx-hal/stm32l151"  ]
+stm32l471     = ["stm32l4xx-hal/stm32l471"  ]
+stm32l422     = ["stm32l4xx-hal/stm32l422"  ]
+stm32l486     = ["stm32l4xx-hal/stm32l486"  ]
+
+dht11     = []
+dht22     = []
+async     = []
+
+## example sections are needed because examples are organized in subdirectories under examples/
+
+# examples/drivers-examples
+
+[[example]]
+name = "ccs811-gas-voc-hdc2080-display"
+path = "examples/driver-examples/ccs811-gas-voc-hdc2080-display.rs"
+
+[[example]]
+name = "ccs811-gas-voc-usart-logger"
+path = "examples/driver-examples/ccs811-gas-voc-usart-logger.rs"
+
+[[example]]
+name = "iaq-core-c-gas-voc-usart-logger"
+path = "examples/driver-examples/iaq-core-c-gas-voc-usart-logger.rs"
+
+
+# examples/I2cBusNotShared   (formerly mostly from rtic)
+
+[[example]]
+name = "blink_rtic"
+path = "examples/I2cBusNotShared/blink_rtic.rs"
+
+[[example]]
+name = "gps_rw_rtic"
+path = "examples/I2cBusNotShared/gps_rw_rtic.rs"
+
+[[example]]
+name = "schedule"
+path = "examples/I2cBusNotShared/schedule.rs"
+
+[[example]]
+name = "resource-user-struct"
+path = "examples/I2cBusNotShared/resource-user-struct.rs"
+
+[[example]]
+name = "dht_rtic"
+path = "examples/I2cBusNotShared/dht_rtic.rs"
+
+[[example]]
+name = "aht10_rtic"
+path = "examples/I2cBusNotShared/aht10_rtic.rs"
+
+[[example]]
+name = "htu2xd_rtic"
+path = "examples/I2cBusNotShared/htu2xd_rtic.rs"
+
+[[example]]
+name = "display_stuff_rtic0"
+path = "examples/I2cBusNotShared/display_stuff_rtic0.rs"
+
+[[example]]
+name = "display_stuff_rtic"
+path = "examples/I2cBusNotShared/display_stuff_rtic.rs"
+
+[[example]]
+name = "display_stuff_rtic_shared_bus"
+path = "examples/I2cBusNotShared/display_stuff_rtic_shared_bus.rs"
+
+[[example]]
+name = "battery_monitor_ads1015_rtic"
+path = "examples/I2cBusNotShared/battery_monitor_ads1015_rtic.rs"
+
+[[example]]
+name = "ads_ina_ssd_rtic"
+path = "examples/I2cBusNotShared/ads_ina_ssd_rtic.rs"
+
+[[example]]
+name = "ina219_rtic"
+path = "examples/I2cBusNotShared/ina219_rtic.rs"
+
+[[example]]
+name = "displayX2_rtic"
+path = "examples/I2cBusNotShared/displayX2_rtic.rs"
+
+[[example]]
+name = "serial-dma"
+path = "examples/I2cBusNotShared/serial-dma.rs"
+
+[[example]]
+name = "aht10-aht30_rtic"
+path = "examples/I2cBusNotShared/aht10-aht30_rtic.rs"
+
+
+# examples/I2cSharedBus
+
+[[example]]
+name = "battery_monitor_ads1015_rtic_dma"
+path = "examples/I2cSharedBus/battery_monitor_ads1015_rtic_dma.rs"
+
+[[example]]
+name = "ccs811-co2-voc"
+path = "examples/I2cSharedBus/ccs811-co2-voc.rs"
+
+
+
+# examples/misc
+
+[[example]]
+name = "display_stuff_rtic_arbit"
+path = "examples/misc/display_stuff_rtic_arbit.rs"
+
+[[example]]
+name = "display_stuff_rtic_share"
+path = "examples/misc/display_stuff_rtic_share.rs"
+
+
+
+# examples/projects
+
+[[example]]
+name = "temp-humidity-display"
+path = "examples/projects/temp-humidity-display.rs"
+
+[[example]]
+name = "temperature-display"
+path = "examples/projects/temperature-display.rs"
+
+[[example]]
+name = "temperature-display_no-rtic"
+path = "examples/projects/temperature-display_no-rtic.rs"
+
+[[example]]
+name = "temperature-display_4jst"
+path = "examples/projects/temperature-display_4jst.rs"
+
+[[example]]
+name = "iaq_ens160aht21_display"
+path = "examples/projects/iaq_ens160aht21_display.rs"
+
+
+# examples/displayX2
+
+[[example]]
+name = "displayX2_rtic1"
+path = "examples/displayX2/displayX2_rtic1.rs"
+
+[[example]]
+name = "displayX2_rtic2"
+path = "examples/displayX2/displayX2_rtic2.rs"
+
+[[example]]
+name = "displayX2_rtic3"
+path = "examples/displayX2/displayX2_rtic3.rs"
+
+[[example]]
+name = "displayX2_rtic4a1"
+path = "examples/displayX2/displayX2_rtic4a1.rs"
+
+[[example]]
+name = "displayX2_rtic4a2"
+path = "examples/displayX2/displayX2_rtic4a2.rs"
+
+[[example]]
+name = "displayX2_rtic4b"
+path = "examples/displayX2/displayX2_rtic4b.rs"
+
+[[example]]
+name = "displayX2_rtic5"
+path = "examples/displayX2/displayX2_rtic5.rs"
