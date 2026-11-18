@@ -145,7 +145,7 @@ use embedded_hal_bus::i2c::RefCellDevice;
 
        //rtt_init_print!();
        //rprintln!("isplay_stuff_rtic example");
-       hprintln!("display_stuff_rtic example").unwrap();
+       hprintln!("display_stuff_rtic example");
 
        let (i2c1, _i2c2, mut led, _delay, _clock) = i2c1_i2c2_led_delay::setup_from_dp(cx.device);
 
@@ -170,11 +170,11 @@ use embedded_hal_bus::i2c::RefCellDevice;
           .into_buffered_graphics_mode();
 
        display.init().unwrap();
-       hprintln!("display.init",).unwrap();
+       hprintln!("display.init",);
 
        Text::with_baseline("Display initialized ...", Point::zero(), text_style, Baseline::Top, )
           .draw(&mut display).unwrap();
-       hprintln!("Text::with_baseline",).unwrap();
+       hprintln!("Text::with_baseline",);
 
        led.off();
 

@@ -113,7 +113,7 @@ mod app {
 
        //rtt_init_print!();
        //rprintln!("isplay_stuff_rtic example");
-       hprintln!("display_stuff_rtic example").unwrap();
+       hprintln!("display_stuff_rtic example");
 
        let ( i2c1,  mut led) = setup::i2c_led_from_dp(cx.device);
 
@@ -134,11 +134,11 @@ mod app {
           .into_buffered_graphics_mode();
 
        display.init().unwrap();
-       hprintln!("display.init",).unwrap();
+       hprintln!("display.init",);
 
        Text::with_baseline("Display initialized ...", Point::zero(), text_style, Baseline::Top, )
           .draw(&mut display).unwrap();
-       hprintln!("Text::with_baseline",).unwrap();
+       hprintln!("Text::with_baseline",);
 
        led.off();
 
